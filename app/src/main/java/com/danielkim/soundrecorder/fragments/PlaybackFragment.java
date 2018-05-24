@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -24,7 +25,6 @@ import android.widget.Toast;
 import com.danielkim.soundrecorder.DBHelper;
 import com.danielkim.soundrecorder.R;
 import com.danielkim.soundrecorder.RecordingItem;
-import com.danielkim.soundrecorder.listeners.OnDatabaseChangedListener;
 import com.melnykov.fab.FloatingActionButton;
 
 import java.io.File;
@@ -56,11 +56,10 @@ public class PlaybackFragment extends DialogFragment {
     private DBHelper mDatabase;
     //stores whether or not the mediaplayer is currently playing audio
     private boolean isPlaying = false;
-
+    private onDeleteListener onDeleteListener;
     //stores minutes and seconds of the length of the file.
     long minutes = 0;
     long seconds = 0;
-
     public PlaybackFragment newInstance(RecordingItem item) {
         PlaybackFragment f = new PlaybackFragment();
         Bundle b = new Bundle();
@@ -70,6 +69,9 @@ public class PlaybackFragment extends DialogFragment {
         return f;
     }
 
+    public void setListener(onDeleteListener onDeleteListener){
+        this.onDeleteListener = onDeleteListener;
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,17 +82,6 @@ public class PlaybackFragment extends DialogFragment {
         seconds = TimeUnit.MILLISECONDS.toSeconds(itemDuration)
                 - TimeUnit.MINUTES.toSeconds(minutes);
         mDatabase = new DBHelper(getActivity());
-        mDatabase.setOnDatabaseChangedListener(new OnDatabaseChangedListener() {
-            @Override
-            public void onNewDatabaseEntryAdded() {
-
-            }
-
-            @Override
-            public void onDatabaseEntryRenamed() {
-
-            }
-        });
     }
 
     @Override
@@ -411,8 +402,12 @@ public class PlaybackFragment extends DialogFragment {
                 ),
                 Toast.LENGTH_SHORT
         ).show();
-
         mDatabase.removeItemWithId(item.getId());
-        getActivity().finish();
+        onDeleteListener.deleteListener();
     }
+
+    public interface onDeleteListener {
+        void deleteListener();
+    }
+
 }

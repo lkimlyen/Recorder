@@ -31,7 +31,7 @@ public class CustomDialogSetName extends DialogFragment {
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         final EditText edtName = (EditText) dialog.findViewById(R.id.edt_name);
         mDatabase = new DBHelper(getActivity());
-        edtName.setText(item.getName().replace(".mp4",""));
+        edtName.setText(item.getName().replace(".mp4", ""));
         dialog.findViewById(R.id.rl_delete).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -46,31 +46,32 @@ public class CustomDialogSetName extends DialogFragment {
                 if (edtName.getText().toString().equals("")) {
                     return;
                 }
-                rename(edtName.getText().toString());
-                dismiss();
+                if (rename(edtName.getText().toString()))
+                    dismiss();
             }
         });
         return dialog;
     }
 
-    public void rename(String name) {
+    public boolean rename(String name) {
         //rename a file
 
         String mFilePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        mFilePath += "/SoundRecorder/" + name+".mp4";
+        mFilePath += "/SoundRecorder/" + name + ".mp4";
         File f = new File(mFilePath);
 
-        if (f.exists() && !f.isDirectory()) {
+        if (f.exists() && !f.isDirectory() && !item.getName().replace(".mp4","").equals(name)) {
             //file name is not unique, cannot rename file.
             Toast.makeText(getActivity(),
                     String.format(getActivity().getString(R.string.toast_file_exists), name),
                     Toast.LENGTH_SHORT).show();
-
+            return false;
         } else {
             //file name is unique, rename file
             File oldFilePath = new File(item.getFilePath());
             oldFilePath.renameTo(f);
             mDatabase.renameItem(item, name, mFilePath);
+            return true;
         }
     }
 
